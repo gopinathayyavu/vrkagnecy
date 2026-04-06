@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,10 +11,15 @@
   <script src="js/firebase.js"></script>
   <script src="js/app.js"></script>
 </head>
+
 <body>
+  <div id="titlebar">
+  </div>
   <div class="app-layout">
     <aside class="sidebar">
-      <div class="logo-area"><h2>VRK AGENCY</h2></div>
+      <div class="logo-area">
+        <h2>VRK AGENCY</h2>
+      </div>
       <nav class="nav-menu">
         <a href="index.html" class="nav-item">Dashboard</a>
         <a href="payments.html" class="nav-item active">Payments</a>
@@ -22,7 +28,9 @@
       <!-- <div class="sidebar-footer"><small>Realtime DB</small></div> -->
     </aside>
     <main class="main-content">
-      <header class="top-bar"><h1>Payments</h1><button class="btn-primary" id="openAddPaymentBtn">+ Add Payment</button></header>
+      <header class="top-bar">
+        <h1>Payments</h1><button class="btn-primary" id="openAddPaymentBtn">+ Add Payment</button>
+      </header>
 
       <!-- Filters -->
       <div class="filters-bar">
@@ -38,8 +46,20 @@
       <div class="table-container">
         <div class="responsive-table">
           <table id="paymentsTable">
-            <thead><tr><th>Customer Name</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
-            <tbody id="paymentsTableBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+            <thead>
+              <tr>
+                <th>Customer Name</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTableBody">
+              <tr>
+                <td colspan="5">Loading...</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -50,7 +70,16 @@
           <span class="close-modal">&times;</span>
           <h3>Payment History: <span id="modalCustomerName"></span></h3>
           <div class="responsive-table">
-            <table><thead><tr><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="historyList"></tbody></table>
+            <table>
+              <thead>
+                <tr>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="historyList"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -61,9 +90,15 @@
           <span class="close-modal" id="closeAddPayment">&times;</span>
           <h3>Add New Payment</h3>
           <form id="addPaymentForm">
-            <div class="form-group"><label>Customer *</label><select id="paymentCustomerId" required><option value="">-- Select Customer --</option></select></div>
-            <div class="form-group"><label>Amount (₹) *</label><input type="number" id="paymentAmount" required min="1" step="1"></div>
-            <div class="form-group"><label>Status *</label><select id="paymentStatus" required><option value="received">Received</option><option value="pending">Pending</option></select></div>
+            <div class="form-group"><label>Customer *</label><select id="paymentCustomerId" required>
+                <option value="">-- Select Customer --</option>
+              </select></div>
+            <div class="form-group"><label>Amount (₹) *</label><input type="number" id="paymentAmount" required min="1"
+                step="1"></div>
+            <div class="form-group"><label>Status *</label><select id="paymentStatus" required>
+                <option value="received">Received</option>
+                <option value="pending">Pending</option>
+              </select></div>
             <button type="submit" class="btn-primary">Save Payment</button>
           </form>
         </div>
@@ -71,7 +106,7 @@
     </main>
   </div>
   <script>
-    (function() {
+    (function () {
       const db = window.firebaseDb;
       const paymentsRef = db.ref('payments');
       const customersRef = db.ref('customers');
@@ -92,7 +127,7 @@
 
       function formatDate(ts) { return ts ? new Date(ts).toLocaleDateString() : '—'; }
       function formatINR(amt) { return '₹' + Number(amt).toLocaleString('en-IN'); }
-      function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;': m==='<'?'&lt;':'&gt;'); }
+      function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
 
       function renderPaymentsTable() {
         let nameFilter = filterName.value.trim().toLowerCase();
@@ -100,11 +135,11 @@
         let filtered = allPayments.filter(p => {
           let cust = customersList.find(c => c.id === p.customerId);
           let custName = cust ? cust.name : '';
-          if(nameFilter && !custName.toLowerCase().includes(nameFilter)) return false;
-          if(statusFilter !== 'all' && p.status !== statusFilter) return false;
+          if (nameFilter && !custName.toLowerCase().includes(nameFilter)) return false;
+          if (statusFilter !== 'all' && p.status !== statusFilter) return false;
           return true;
         });
-        if(filtered.length === 0) {
+        if (filtered.length === 0) {
           tableBody.innerHTML = '<tr><td colspan="5">No payments found</td></tr>';
           return;
         }
@@ -133,7 +168,7 @@
       function showHistory(customerId, customerName) {
         const customerPayments = allPayments.filter(p => p.customerId === customerId);
         const historyList = document.getElementById('historyList');
-        if(customerPayments.length === 0) {
+        if (customerPayments.length === 0) {
           historyList.innerHTML = '<tr><td colspan="3">No payments for this customer</td></tr>';
         } else {
           let html = '';
@@ -173,7 +208,7 @@
         const customerId = document.getElementById('paymentCustomerId').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
         const status = document.getElementById('paymentStatus').value;
-        if(!customerId || isNaN(amount) || amount <= 0) return alert('Please fill all fields');
+        if (!customerId || isNaN(amount) || amount <= 0) return alert('Please fill all fields');
         const selectedCust = customersList.find(c => c.id === customerId);
         const newPayment = {
           customerId: customerId,
@@ -191,11 +226,12 @@
       openBtn.onclick = () => { loadCustomersForSelect(); addModal.style.display = 'flex'; };
       closeAdd.onclick = () => addModal.style.display = 'none';
       closeHistory.onclick = () => historyModal.style.display = 'none';
-      window.onclick = (e) => { if(e.target === addModal) addModal.style.display = 'none'; if(e.target === historyModal) historyModal.style.display = 'none'; };
+      window.onclick = (e) => { if (e.target === addModal) addModal.style.display = 'none'; if (e.target === historyModal) historyModal.style.display = 'none'; };
       filterName.addEventListener('input', renderPaymentsTable);
       filterStatus.addEventListener('change', renderPaymentsTable);
       loadPayments();
     })();
   </script>
 </body>
+
 </html>
