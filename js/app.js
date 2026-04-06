@@ -4,14 +4,3 @@
 console.log("FinTrack App Loaded");
 
 
-function minimize() {
-    Neutralino.window.minimize();
-}
-
-function maximize() {
-    Neutralino.window.maximize();
-}
-
-function closeApp() {
-    Neutralino.app.exit();
-}

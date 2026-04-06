@@ -33,7 +33,13 @@
         <main class="main-content">
             <header class="top-bar">
                 <h1>Dashboard</h1>
-                <div class="date-badge" id="liveDate"></div>
+
+                <div class="right-section">
+                    <div class="ref-badge">
+                        <i class="fa fa-refresh fa-spin"></i>
+                    </div>
+                    <div class="date-badge" id="liveDate"></div>
+                </div>
             </header>
 
             <div class="cards-grid">
@@ -85,6 +91,12 @@
             </div>
         </main>
     </div>
+
+    <script>
+        document.querySelector('.ref-badge').addEventListener('click', function () {
+            location.reload();
+        });
+    </script>
     <script>
         (function () {
             const db = window.firebaseDb;
