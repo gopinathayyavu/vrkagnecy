@@ -135,7 +135,8 @@ body {
 /* Cards */
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+    /* 🔒 FIXED 3 columns */
     gap: 24px;
     margin-bottom: 40px;
 }
@@ -410,10 +411,6 @@ tr:hover td {
 
     .main-content {
         padding: 20px;
-    }
-
-    .cards-grid {
-        grid-template-columns: 1fr;
     }
 }
 
