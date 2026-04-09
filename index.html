@@ -1,203 +1,294 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VRK AGENCY | Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Firebase CDN -->
+
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="js/firebase.js"></script>
-    <script src="js/app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body>
-    <div class="app-layout">
-        <aside class="sidebar">
-            <div class="logo-area">
-                <h2>VRK AGENCY</h2>
-            </div>
-            <nav class="nav-menu">
-                <a onclick="goToPage('index.html')" class="nav-item active">Dashboard</a>
-                <a onclick="goToPage('payments.html')" class="nav-item">Payments</a>
-                <a onclick="goToPage('customers.html')" class="nav-item">Customers</a>
-            </nav>
-            <!-- <div class="sidebar-footer">
-                <small>Realtime DB</small>
-            </div> -->
-        </aside>
 
-        <main class="main-content">
-            <header class="top-bar">
-                <h1>Dashboard</h1>
+<div class="app-layout">
 
-                <div class="right-section">
-                    <div onclick="refreshPage()" class="ref-badge">
-                        <i class="fa fa-refresh refresh-icon"></i>
-                    </div>
-                    <div class="date-badge" id="liveDate"></div>
-                </div>
-            </header>
-
-            <div class="cards-grid">
-                <div class="stat-card">
-                    <div class="card-icon"><i class="fa fa-inr" style="font-size:24px"></i></div>
-                    <div class="card-info">
-                        <h3>Total Amount</h3>
-                        <p class="stat-number" id="totalAmount">₹0</p>
-                    </div>
-                </div>
-                <div class="stat-card success">
-                    <div class="card-icon"><i class="fa fa-check" style="font-size:24px"></i></div>
-                    <div class="card-info">
-                        <h3>Received Amount</h3>
-                        <p class="stat-number" id="receivedAmount">₹0</p>
-                    </div>
-                </div>
-                <div class="stat-card warning">
-                    <div class="card-icon"><i class="fa fa-clock-o" style="font-size:24px"></i></div>
-                    <div class="card-info">
-                        <h3>Pending Amount</h3>
-                        <p class="stat-number" id="pendingAmount">₹0</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <div class="section-title">
-                    <h2><i class='fas fa-bell' style='font-size:24px'></i> Highly Pending Customers</h2>
-                    <span class="badge">sorted by pending</span>
-                </div>
-                <div class="responsive-table">
-                    <table id="pendingCustomersTable">
-                        <thead>
-                            <tr>
-                                <th>Customer Name</th>
-                                <th>Mobile</th>
-                                <th>Pending Amount</th>
-                                <th>Last Payment Date</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pendingTableBody">
-                            <tr>
-                                <td colspan="4" class="loading-row">Loading...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="logo-area">
+        <h2>VRK AGENCY</h2>
     </div>
 
-    <script src="js/app.js"></script>
-    <script>
-        function goToPage(page) {
-            window.location.href = page;
+    <nav class="nav-menu">
+        <a onclick="goToPage('index.html')" class="nav-item active">Dashboard</a>
+        <a onclick="goToPage('payments.html')" class="nav-item">Payments</a>
+        <a onclick="goToPage('customers.html')" class="nav-item">Customers</a>
+    </nav>
+</aside>
+
+<!-- Main -->
+<main class="main-content">
+
+<header class="top-bar">
+    <h1>Dashboard</h1>
+
+    <div class="right-section">
+        <div class="date-badge" id="todayDate"></div>
+    </div>
+</header>
+
+<!-- 🔥 FILTERS -->
+<div class="filters-bar">
+    <select id="filterType" class="filter-select">
+        <option value="all">All</option>
+        <option value="today">Today</option>
+        <option value="month">This Month</option>
+        <option value="year">This Year</option>
+    </select>
+
+    <input type="date" id="fromDate" class="filter-input">
+    <input type="date" id="toDate" class="filter-input">
+</div>
+
+<!-- Cards -->
+<div class="cards-grid">
+    <div class="stat-card">
+        <div class="card-icon">₹</div>
+        <div class="card-info">
+            <h3>Total</h3>
+            <div class="stat-number" id="totalAmount">₹0</div>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="card-icon">✔</div>
+        <div class="card-info">
+            <h3>Received</h3>
+            <div class="stat-number" id="receivedAmount">₹0</div>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="card-icon">⚠</div>
+        <div class="card-info">
+            <h3>Pending</h3>
+            <div class="stat-number" id="pendingAmount">₹0</div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Customers -->
+<div class="table-container">
+
+<div class="section-title">
+    <h2>Highly Pending Customers</h2>
+</div>
+
+<div class="responsive-table">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Mobile</th>
+<th>Pending</th>
+<th>Last Payment</th>
+</tr>
+</thead>
+
+<tbody id="pendingTableBody">
+<tr><td colspan="4">Loading...</td></tr>
+</tbody>
+
+</table>
+</div>
+
+</div>
+
+</main>
+</div>
+
+<script>
+
+const db = window.firebaseDb;
+const customersRef = db.ref('customers');
+const paymentsRef = db.ref('payments');
+
+const totalEl = document.getElementById('totalAmount');
+const receivedEl = document.getElementById('receivedAmount');
+const pendingEl = document.getElementById('pendingAmount');
+const pendingTableBody = document.getElementById('pendingTableBody');
+
+const filterTypeEl = document.getElementById("filterType");
+const fromDateEl = document.getElementById("fromDate");
+const toDateEl = document.getElementById("toDate");
+
+let customersData = {};
+let paymentsData = {};
+
+function formatINR(x) {
+    return '₹' + Number(x || 0).toLocaleString('en-IN');
+}
+
+/* Date badge */
+document.getElementById("todayDate").innerText =
+    new Date().toDateString();
+
+/* 🔥 FILTER */
+function filterByDate(date) {
+    let d = new Date(date);
+    let now = new Date();
+
+    let type = filterTypeEl.value;
+
+    if (type === "today") {
+        return d.toDateString() === now.toDateString();
+    }
+
+    if (type === "month") {
+        return d.getMonth() === now.getMonth() &&
+               d.getFullYear() === now.getFullYear();
+    }
+
+    if (type === "year") {
+        return d.getFullYear() === now.getFullYear();
+    }
+
+    if (fromDateEl.value && toDateEl.value) {
+        let from = new Date(fromDateEl.value);
+        let to = new Date(toDateEl.value);
+        return d >= from && d <= to;
+    }
+
+    return true;
+}
+
+/* 🔥 FILTERED PAYMENTS */
+function getFilteredPayments(payments) {
+    let result = {};
+
+    for (let id in payments) {
+        let p = payments[id];
+        if (!p) continue;
+
+        if (filterByDate(p.date)) {
+            result[id] = p;
         }
-    </script>
-    <script>
-        document.querySelector('.ref-badge').addEventListener('click', function () {
-            location.reload();
+    }
+
+    return result;
+}
+
+/* 🔥 MAIN RENDER */
+function renderDashboard(customers, payments) {
+
+    let total = 0;
+    let received = 0;
+
+    const perCustomer = {};
+
+    for (let id in payments) {
+        let p = payments[id];
+        if (!p) continue;
+
+        let t = Number(p.totalAmount || 0);
+        let r = Number(p.receivedAmount || 0);
+
+        total += t;
+        received += r;
+
+        if (!perCustomer[p.customerId]) {
+            perCustomer[p.customerId] = {
+                total: 0,
+                received: 0,
+                lastDate: 0
+            };
+        }
+
+        perCustomer[p.customerId].total += t;
+        perCustomer[p.customerId].received += r;
+
+        if (p.date > perCustomer[p.customerId].lastDate) {
+            perCustomer[p.customerId].lastDate = p.date;
+        }
+    }
+
+    let pending = total - received;
+
+    totalEl.innerText = formatINR(total);
+    receivedEl.innerText = formatINR(received);
+    pendingEl.innerText = formatINR(pending);
+
+    let list = [];
+
+    for (let cid in perCustomer) {
+        let c = customers[cid] || {};
+
+        let t = perCustomer[cid].total;
+        let r = perCustomer[cid].received;
+        let p = t - r;
+
+        if (p > 0) {
+            list.push({
+                name: c.name || "Unknown",
+                mobile: c.mobile || "—",
+                pending: p,
+                lastDate: perCustomer[cid].lastDate
+            });
+        }
+    }
+
+    list.sort((a, b) => b.pending - a.pending);
+
+    let html = '';
+
+    if (list.length === 0) {
+        html = `<tr><td colspan="4">✨ No pending dues</td></tr>`;
+    } else {
+        list.forEach(item => {
+            html += `
+            <tr>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.mobile}</td>
+                <td class="pending-amount">${formatINR(item.pending)}</td>
+                <td>${new Date(item.lastDate).toLocaleDateString()}</td>
+            </tr>`;
         });
-    </script>
-    <script>
-        function refreshPage() {
-            const icon = document.querySelector(".refresh-icon");
+    }
 
-            // Start spinning
-            icon.classList.add("rotate");
+    pendingTableBody.innerHTML = html;
+}
 
-            // Reload after short delay
-            setTimeout(() => {
-                location.reload();
-            }, 500);
-        }
-    </script>
-    <script>
-        (function () {
-            const db = window.firebaseDb;
-            const customersRef = db.ref('customers');
-            const paymentsRef = db.ref('payments');
-            const totalEl = document.getElementById('totalAmount');
-            const receivedEl = document.getElementById('receivedAmount');
-            const pendingEl = document.getElementById('pendingAmount');
-            const pendingTableBody = document.getElementById('pendingTableBody');
+/* 🔁 REFRESH */
+function refreshDashboard() {
+    renderDashboard(
+        customersData,
+        getFilteredPayments(paymentsData)
+    );
+}
 
-            function formatINR(amount) { return '₹' + Number(amount).toLocaleString('en-IN'); }
-            function formatDate(ts) { return ts ? new Date(ts).toLocaleDateString() : '—'; }
-            function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function (m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+/* EVENTS */
+filterTypeEl.onchange = refreshDashboard;
+fromDateEl.onchange = refreshDashboard;
+toDateEl.onchange = refreshDashboard;
 
-            function renderDashboard(customers, payments) {
-                let total = 0, received = 0, pending = 0;
-                const paymentsList = [];
-                for (let id in payments) {
-                    let p = payments[id];
-                    if (p && typeof p.amount === 'number') {
-                        paymentsList.push(p);
-                        total += p.amount;
-                        if (p.status === 'received') received += p.amount;
-                        else if (p.status === 'pending') pending += p.amount;
-                    }
-                }
-                totalEl.innerText = formatINR(total);
-                receivedEl.innerText = formatINR(received);
-                pendingEl.innerText = formatINR(pending);
+/* FIREBASE */
+customersRef.on('value', snap => {
+    customersData = snap.val() || {};
+    refreshDashboard();
+});
 
-                const pendingPerCust = new Map();
-                const lastDatePerCust = new Map();
-                paymentsList.forEach(p => {
-                    const cid = p.customerId;
-                    if (!cid) return;
-                    if (p.status === 'pending') {
-                        pendingPerCust.set(cid, (pendingPerCust.get(cid) || 0) + p.amount);
-                    }
-                    if (p.date) {
-                        let cur = lastDatePerCust.get(cid) || 0;
-                        if (p.date > cur) lastDatePerCust.set(cid, p.date);
-                    }
-                });
-                const highPending = [];
-                for (let cid in customers) {
-                    let c = customers[cid];
-                    let pendingAmt = pendingPerCust.get(cid) || 0;
-                    if (pendingAmt > 0) {
-                        highPending.push({
-                            name: c.name || '?',
-                            mobile: c.mobile || '—',
-                            pending: pendingAmt,
-                            lastDate: lastDatePerCust.get(cid)
-                        });
-                    }
-                }
-                highPending.sort((a, b) => b.pending - a.pending);
-                if (highPending.length === 0) {
-                    pendingTableBody.innerHTML = '<tr><td colspan="4" class="empty-row">✨ No pending dues</td></tr>';
-                    return;
-                }
-                let html = '';
-                highPending.forEach(h => {
-                    html += `<tr>
-            <td><strong>${escapeHtml(h.name)}</strong></td>
-            <td>${escapeHtml(h.mobile)}</td>
-            <td class="pending-amount">${formatINR(h.pending)}</td>
-            <td>${formatDate(h.lastDate)}</td>
-          </tr>`;
-                });
-                pendingTableBody.innerHTML = html;
-            }
+paymentsRef.on('value', snap => {
+    paymentsData = snap.val() || {};
+    refreshDashboard();
+});
 
-            let customersData = {}, paymentsData = {};
-            customersRef.on('value', snap => { customersData = snap.val() || {}; renderDashboard(customersData, paymentsData); });
-            paymentsRef.on('value', snap => { paymentsData = snap.val() || {}; renderDashboard(customersData, paymentsData); });
+/* NAV */
+function goToPage(p){
+    window.location.href = p;
+}
 
-            const dateSpan = document.getElementById('liveDate');
-            function updateDate() { dateSpan.innerText = new Date().toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }); }
-            updateDate(); setInterval(updateDate, 60000);
-        })();
-    </script>
+</script>
+
 </body>
-
 </html>

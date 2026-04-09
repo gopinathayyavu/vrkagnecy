@@ -2,65 +2,300 @@
 <html>
 
 <head>
-    <title>History</title>
+    <title>VRK AGENCY | History</title>
     <link rel="stylesheet" href="css/style.css">
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="js/firebase.js"></script>
+
+    <!-- PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        .filters-bar { display:flex; gap:10px; flex-wrap:nowrap; overflow-x:auto; }
+        .filters-bar input,.filters-bar select { min-width:150px; }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #323232;
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        .toast.info { background: #007bff; }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-box input { padding: 8px; }
+        .modal-actions { display: flex; justify-content: space-between; }
+    </style>
 </head>
 
 <body>
 
-    <div class="main-content">
-        <h2>Customer History</h2>
+<div id="toast" class="toast"></div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Total</th>
-                    <th>Received</th>
-                    <th>Pending</th>
-                </tr>
-            </thead>
+<!-- Modal -->
+<div id="pendingModal" class="modal">
+    <div class="modal-box">
+        <h3>Add Pending Payment</h3>
 
-            <tbody id="body"></tbody>
-        </table>
+        <input type="number" id="receivedAmount" placeholder="Enter Payment Amount">
+        <input type="date" id="paymentDate">
 
+        <div class="modal-actions">
+            <button onclick="savePending()">Save</button>
+            <button onclick="closePendingModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="app-layout">
+
+<aside class="sidebar">
+    <div class="logo-area">
+        <h2>VRK AGENCY</h2>
+    </div>
+    <nav class="nav-menu">
+        <a onclick="goToPage('index.html')" class="nav-item">Dashboard</a>
+        <a onclick="goToPage('payments.html')" class="nav-item active">Payments</a>
+        <a onclick="goToPage('customers.html')" class="nav-item">Customers</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+
+<header class="top-bar">
+    <div>
+        <h1 id="customerName">Customer</h1>
+        <small id="customerMobile"></small>
     </div>
 
-    <script>
-        const db = window.firebaseDb;
-        const paymentsRef = db.ref('payments');
+    <div>
+        <button class="btn-primary" onclick="alert_PDF()">Export PDF</button>
+        <button class="btn-primary" onclick="shareWhatsApp()">Share</button>
+        <button class="btn-primary" onclick="openPendingModal()">+ Add Pending</button>
+    </div>
+</header>
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const customerId = urlParams.get('customerId');
+<div class="filters-bar">
+    <select id="quickFilter" class="filter-select">
+        <option value="all">All</option>
+        <option value="today">Today</option>
+        <option value="month">This Month</option>
+        <option value="year">This Year</option>
+    </select>
 
-        function formatINR(x) { return "₹" + Number(x).toLocaleString('en-IN'); }
+    <input type="date" id="fromDate" class="filter-input">
+    <input type="date" id="toDate" class="filter-input">
+</div>
 
-        paymentsRef.on('value', snap => {
-            let obj = snap.val() || {};
-            let payments = Object.entries(obj).map(([id, d]) => ({ id, ...d }));
+<div class="table-container">
+<div class="responsive-table">
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Total</th>
+<th>Received</th>
+<th>Pending</th>
+</tr>
+</thead>
+<tbody id="body"></tbody>
+</table>
+</div>
+</div>
 
-            let html = "";
+</main>
+</div>
 
-            payments
-                .filter(p => p.customerId === customerId)
-                .forEach(p => {
-                    html += `
-      <tr>
-        <td>${new Date(p.date).toLocaleDateString()}</td>
-        <td>${formatINR(p.totalAmount)}</td>
-        <td>${formatINR(p.receivedAmount)}</td>
-        <td>${formatINR(p.pendingAmount)}</td>
-      </tr>`;
-                });
+<script>
 
-            document.getElementById('body').innerHTML = html;
+/* MODAL */
+function openPendingModal(){
+    document.getElementById("pendingModal").style.display="flex";
+    document.getElementById("paymentDate").value=new Date().toISOString().split("T")[0];
+}
+function closePendingModal(){
+    document.getElementById("pendingModal").style.display="none";
+}
+
+/* FIXED SAVE */
+function savePending(){
+    let received = Number(document.getElementById("receivedAmount").value);
+    let dateInput = document.getElementById("paymentDate").value;
+
+    if(!received || !dateInput){
+        showToast("Enter valid amount","error");
+        return;
+    }
+
+    paymentsRef.push({
+        customerId: customerId,
+        totalAmount: 0,
+        receivedAmount: received,
+        pendingAmount: 0,
+        date: new Date(dateInput).getTime(),
+        type:"payment"
+    });
+
+    showToast("Payment added ✅","success");
+
+    closePendingModal();
+    document.getElementById("receivedAmount").value="";
+}
+
+/* TOAST */
+function showToast(message,type="info"){
+    const toast=document.getElementById("toast");
+    toast.innerText=message;
+    toast.className="toast show "+type;
+    setTimeout(()=>toast.className="toast",3000);
+}
+
+function alert_PDF(){ showToast("PDF export coming soon","info"); }
+function goToPage(p){ window.location.href=p; }
+
+const db=window.firebaseDb;
+const paymentsRef=db.ref('payments');
+const customersRef=db.ref('customers');
+
+const customerId=new URLSearchParams(window.location.search).get('customerId');
+
+let customerPayments=[];
+
+const COMPANY_NAME="VRK AGENCY";
+const COMPANY_PHONE="+91 9790381782";
+
+function formatINR(x){ return "₹"+Number(x||0).toLocaleString('en-IN'); }
+
+/* FILTERS */
+const quickFilter=document.getElementById('quickFilter');
+const fromDate=document.getElementById('fromDate');
+const toDate=document.getElementById('toDate');
+
+function filterByDate(date){
+    let d=new Date(date);
+    let now=new Date();
+
+    if(quickFilter.value==='today') return d.toDateString()===now.toDateString();
+    if(quickFilter.value==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+    if(quickFilter.value==='year') return d.getFullYear()===now.getFullYear();
+
+    if(fromDate.value && toDate.value){
+        let from=new Date(fromDate.value);
+        let to=new Date(toDate.value);
+        return d>=from && d<=to;
+    }
+
+    return true;
+}
+
+/* CUSTOMER */
+customersRef.once('value',snap=>{
+    let obj=snap.val()||{};
+    let customers=Object.entries(obj).map(([id,d])=>({id,...d}));
+
+    let customerData=customers.find(c=>c.id===customerId)||{};
+    document.getElementById('customerName').innerText=customerData.name||"Unknown";
+    document.getElementById('customerMobile').innerText=customerData.mobile||"";
+});
+
+/* PAYMENTS */
+paymentsRef.on('value',snap=>{
+    let obj=snap.val()||{};
+    let payments=Object.entries(obj).map(([id,d])=>({id,...d}));
+
+    customerPayments=payments
+        .filter(p=>p.customerId===customerId)
+        .sort((a,b)=>a.date-b.date);
+
+    render();
+});
+
+/* FIXED RENDER */
+function render(){
+    let html="";
+    let total=0;
+    let received=0;
+
+    customerPayments
+        .filter(p=>filterByDate(p.date))
+        .forEach(p=>{
+            total+=Number(p.totalAmount||0);
+            received+=Number(p.receivedAmount||0);
+
+            let pending=total-received;
+
+            html+=`
+            <tr>
+                <td>${new Date(p.date).toLocaleDateString()}</td>
+                <td>${formatINR(p.totalAmount)}</td>
+                <td>${formatINR(p.receivedAmount)}</td>
+                <td>${formatINR(pending)}</td>
+            </tr>`;
         });
-    </script>
+
+    document.getElementById('body').innerHTML=
+        html||`<tr><td colspan="4">No data</td></tr>`;
+}
+
+quickFilter.onchange=render;
+fromDate.onchange=render;
+toDate.onchange=render;
+
+/* WHATSAPP */
+function shareWhatsApp(){
+    let total=0,received=0;
+
+    customerPayments.forEach(p=>{
+        total+=Number(p.totalAmount);
+        received+=Number(p.receivedAmount);
+    });
+
+    let pending=total-received;
+
+    let msg=`Dear Customer,
+This is a reminder that a payment of ₹19500 is pending with VRK Agency.
+Kindly clear the dues earlier.
+Thank you, Kindly please visit again.
+VRK AGENCY
++91 9876543210`;
+    window.open("https://wa.me/?text="+encodeURIComponent(msg));
+}
+
+</script>
 
 </body>
-
 </html>
