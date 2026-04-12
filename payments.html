@@ -11,7 +11,7 @@
   <script src="js/firebase.js"></script>
 
   <style>
-    /* ✅ FILTERS ALWAYS IN ONE ROW */
+    /* FILTER BAR */
     .filters-bar {
       display: flex;
       gap: 10px;
@@ -25,9 +25,29 @@
       flex: 1;
     }
 
-    /* Optional smooth scroll */
     .filters-bar::-webkit-scrollbar {
       height: 5px;
+    }
+
+    /* ✅ COLORS */
+    .total {
+      color: #007bff;
+      font-weight: bold;
+    }
+
+    .received {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .pending {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .no-pending {
+      color: #28a745;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -109,7 +129,9 @@
       const fromDate = document.getElementById('fromDate');
       const toDate = document.getElementById('toDate');
 
-      function formatINR(x) { return "₹" + Number(x || 0).toLocaleString('en-IN'); }
+      function formatINR(x) {
+        return "₹" + Number(x || 0).toLocaleString('en-IN');
+      }
 
       function filterByDate(date) {
         let d = new Date(date);
@@ -157,7 +179,6 @@
         });
 
         let search = searchInput.value.toLowerCase();
-
         let html = "";
 
         Object.entries(map).forEach(([id, data]) => {
@@ -165,15 +186,19 @@
 
           let pending = data.total - data.received;
 
+          let pendingDisplay = pending === 0
+            ? `<span class="no-pending">No pending</span>`
+            : `<span class="pending">${formatINR(pending)}</span>`;
+
           html += `
-      <tr>
-        <td>${data.name}</td>
-        <td>${data.mobile}</td>
-        <td>${formatINR(data.total)}</td>
-        <td>${formatINR(data.received)}</td>
-        <td>${formatINR(pending)}</td>
-        <td><button class="btn-small" onclick="viewHistory('${id}')">History</button></td>
-      </tr>`;
+          <tr>
+            <td>${data.name}</td>
+            <td>${data.mobile}</td>
+            <td class="total">${formatINR(data.total)}</td>
+            <td class="received">${formatINR(data.received)}</td>
+            <td>${pendingDisplay}</td>
+            <td><button class="btn-small" onclick="viewHistory('${id}')">History</button></td>
+          </tr>`;
         });
 
         tableBody.innerHTML = html || `<tr><td colspan="6">No data</td></tr>`;
@@ -183,13 +208,12 @@
         window.location.href = "history.html?customerId=" + id;
       }
 
-      /* ✅ SORT LATEST FIRST */
       paymentsRef.on('value', snap => {
         let obj = snap.val() || {};
 
         payments = Object.entries(obj)
           .map(([id, d]) => ({ id, ...d }))
-          .sort((a, b) => b.date - a.date); // 🔥 latest first
+          .sort((a, b) => b.date - a.date);
 
         render();
       });

@@ -30,29 +30,30 @@
         <!-- Main -->
         <main class="main-content">
 
-            <header class="top-bar">
-                <h1>Dashboard</h1>
+            <header class="top-bar new-header">
+                <!-- Center (Filters) -->
+                <div class="header-filters">
+                    <select id="filterType" class="filter-select">
+                        <option value="all">All</option>
+                        <option value="today">Today</option>
+                        <option value="month">This Month</option>
+                        <option value="year">This Year</option>
+                    </select>
+                    <p>From</p>
+                    <input type="date" id="fromDate" class="filter-input">
+                    <p>To</p>
+                    <input type="date" id="toDate" class="filter-input">
+                </div>
 
-                <div class="right-section">
+                <!-- Right -->
+                <div class="header-right">
                     <div onclick="refreshPage()" class="ref-badge">
                         <i class="fa fa-refresh refresh-icon"></i>
                     </div>
                     <div class="date-badge" id="todayDate"></div>
                 </div>
+
             </header>
-
-            <!-- 🔥 FILTERS -->
-            <div class="filters-bar">
-                <select id="filterType" class="filter-select">
-                    <option value="all">All</option>
-                    <option value="today">Today</option>
-                    <option value="month">This Month</option>
-                    <option value="year">This Year</option>
-                </select>
-
-                <input type="date" id="fromDate" class="filter-input">
-                <input type="date" id="toDate" class="filter-input">
-            </div>
 
             <!-- Cards -->
             <div class="cards-grid">

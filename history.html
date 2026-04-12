@@ -9,10 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="js/firebase.js"></script>
 
-    <!-- PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-
     <style>
         .filters-bar { display:flex; gap:10px; flex-wrap:nowrap; overflow-x:auto; }
         .filters-bar input,.filters-bar select { min-width:150px; }
@@ -59,6 +55,19 @@
 
         .modal-box input { padding: 8px; }
         .modal-actions { display: flex; justify-content: space-between; }
+
+        /* ✅ NEW COLORS (SAFE ADDITION) */
+        .total { color:#007bff; font-weight:600; }
+        .received { color:#28a745; font-weight:600; }
+        .pending { color:#dc3545; font-weight:600; }
+
+        .cleared {
+            color:#28a745;
+            font-weight:600;
+            background:#eafbea;
+            padding:3px 8px;
+            border-radius:6px;
+        }
     </style>
 </head>
 
@@ -142,6 +151,15 @@
 
 <script>
 
+/* DATE FORMAT */
+function formatDate(d){
+    let date=new Date(d);
+    let day=String(date.getDate()).padStart(2,'0');
+    let month=String(date.getMonth()+1).padStart(2,'0');
+    let year=date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 /* MODAL */
 function openPendingModal(){
     document.getElementById("pendingModal").style.display="flex";
@@ -151,7 +169,7 @@ function closePendingModal(){
     document.getElementById("pendingModal").style.display="none";
 }
 
-/* FIXED SAVE */
+/* SAVE */
 function savePending(){
     let received = Number(document.getElementById("receivedAmount").value);
     let dateInput = document.getElementById("paymentDate").value;
@@ -171,7 +189,6 @@ function savePending(){
     });
 
     showToast("Payment added ✅","success");
-
     closePendingModal();
     document.getElementById("receivedAmount").value="";
 }
@@ -194,9 +211,6 @@ const customersRef=db.ref('customers');
 const customerId=new URLSearchParams(window.location.search).get('customerId');
 
 let customerPayments=[];
-
-const COMPANY_NAME="VRK AGENCY";
-const COMPANY_PHONE="+91 9790381782";
 
 function formatINR(x){ return "₹"+Number(x||0).toLocaleString('en-IN'); }
 
@@ -244,7 +258,7 @@ paymentsRef.on('value',snap=>{
     render();
 });
 
-/* FIXED RENDER */
+/* UPDATED RENDER */
 function render(){
     let html="";
     let total=0;
@@ -256,19 +270,22 @@ function render(){
             total+=Number(p.totalAmount||0);
             received+=Number(p.receivedAmount||0);
 
-            let pending=total-received;
+            let pending=Math.max(0,total-received);
+            let pendingDisplay = pending===0
+                ? `<span class="cleared">Cleared</span>`
+                : `<span class="pending">${formatINR(pending)}</span>`;
 
             html+=`
             <tr>
-                <td>${new Date(p.date).toLocaleDateString()}</td>
-                <td>${formatINR(p.totalAmount)}</td>
-                <td>${formatINR(p.receivedAmount)}</td>
-                <td>${formatINR(pending)}</td>
+                <td>${formatDate(p.date)}</td>
+                <td class="total">${formatINR(p.totalAmount)}</td>
+                <td class="received">${formatINR(p.receivedAmount)}</td>
+                <td>${pendingDisplay}</td>
             </tr>`;
         });
 
-    document.getElementById('body').innerHTML=
-        html||`<tr><td colspan="4">No data</td></tr>`;
+    document.getElementById('body').innerHTML =
+        html || `<tr><td colspan="4">No data</td></tr>`;
 }
 
 quickFilter.onchange=render;
@@ -284,14 +301,12 @@ function shareWhatsApp(){
         received+=Number(p.receivedAmount);
     });
 
-    let pending=total-received;
+    let pending=Math.max(0,total-received);
 
-    let msg=`Dear Customer,
-This is a reminder that a payment of ₹19500 is pending with VRK Agency.
-Kindly clear the dues earlier.
-Thank you, Kindly please visit again.
-VRK AGENCY
-+91 9876543210`;
+    let msg = pending===0
+        ? "✅ Your account is fully cleared. Thank you!"
+        : `Dear Customer,\nPending amount: ${formatINR(pending)}\nPlease clear dues.\nVRK AGENCY`;
+
     window.open("https://wa.me/?text="+encodeURIComponent(msg));
 }
 
