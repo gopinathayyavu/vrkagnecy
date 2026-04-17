@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VRK AGENCY | Products</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="js/firebase.js"></script>
+
+  <style>
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-edit {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: 0.3s;
+    }
+
+    .toast.show { opacity: 1; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="logo-area"><h2>VRK AGENCY</h2></div>
+    <nav class="nav-menu">
+      <a onclick="goToPage('index.html')" class="nav-item">Dashboard</a>
+      <a onclick="goToPage('payments.html')" class="nav-item">Payments</a>
+      <a onclick="goToPage('customers.html')" class="nav-item">Customers</a>
+      <a class="nav-item active">Products</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="top-bar">
+      <h1>Products</h1>
+      <button class="btn-primary" onclick="goToPage('add-product.html')">+ Add Product</button>
+    </header>
+
+    <div class="table-container">
+      <div class="responsive-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="productTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+
+    <input type="hidden" id="editId">
+
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="editName">
+    </div>
+
+    <div class="form-group">
+      <label>Price</label>
+      <input type="number" id="editPrice">
+    </div>
+
+    <div class="form-group">
+      <label>Unit</label>
+      <input type="text" id="editUnit">
+    </div>
+
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number" id="editQuantity">
+    </div>
+
+    <button class="btn-primary" onclick="updateProduct()">Update</button>
+    <button onclick="closeModal()">Cancel</button>
+
+  </div>
+</div>
+
+<script>
+function goToPage(p){ window.location.href = p; }
+
+const db = window.firebaseDb;
+const ref = db.ref('products');
+const table = document.getElementById("productTable");
+
+function showToast(msg,type="success"){
+  let t=document.getElementById("toast");
+  t.innerText=msg;
+  t.style.background = type==="error" ? "#dc3545" : "#28a745";
+  t.classList.add("show");
+
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+/* LOAD */
+ref.on('value', snap=>{
+  let data=snap.val()||{};
+  let html="";
+
+  Object.entries(data).forEach(([id,p])=>{
+    html+=`
+    <tr>
+      <td>${p.name}</td>
+      <td>₹${p.price}/${p.unit}</td>
+      <td>${p.quantity}</td>
+      <td>
+        <button class="btn-edit" onclick="openEdit('${id}','${p.name}','${p.price}','${p.unit}','${p.quantity}')">Edit</button>
+        <button class="btn-delete" onclick="deleteProduct('${id}')">Delete</button>
+      </td>
+    </tr>`;
+  });
+
+  table.innerHTML = html || `<tr><td colspan="4">No products</td></tr>`;
+});
+
+/* DELETE */
+function deleteProduct(id){
+  ref.child(id).remove()
+  .then(()=>showToast("Deleted ✅"))
+  .catch(()=>showToast("Error ❌","error"));
+}
+
+/* EDIT */
+function openEdit(id,name,price,unit,qty){
+  editId.value=id;
+  editName.value=name;
+  editPrice.value=price;
+  editUnit.value=unit;
+  editQuantity.value=qty;
+
+  document.getElementById("editModal").style.display="flex";
+}
+
+function closeModal(){
+  document.getElementById("editModal").style.display="none";
+}
+
+function updateProduct(){
+  ref.child(editId.value).update({
+    name: editName.value,
+    price: Number(editPrice.value),
+    unit: editUnit.value,
+    quantity: Number(editQuantity.value)
+  })
+  .then(()=>{
+    showToast("Updated ✅");
+    closeModal();
+  });
+}
+</script>
+
+</body>
+</html>

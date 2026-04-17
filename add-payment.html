@@ -4,34 +4,41 @@
 <head>
     <meta charset="UTF-8">
     <title>VRK AGENCY | Add Payment</title>
-
     <link rel="stylesheet" href="css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="js/firebase.js"></script>
-
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         .form-wrapper {
             display: flex;
             justify-content: center;
-            margin-top: 40px;
+            margin-top: 30px;
         }
 
         .form-card {
             background: #ffffff;
-            padding: 25px;
-            width: 420px;
-            border-radius: 16px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 28px;
+            width: 750px;
+            max-width: 95%;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.08);
         }
 
         .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            border-left: 4px solid #0d6efd;
+            padding-left: 16px;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 600;
         }
 
         .form-group {
@@ -42,260 +49,618 @@
             display: block;
             margin-bottom: 6px;
             font-weight: 600;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            outline: none;
-        }
-
-        .search-results {
-            margin-top: 5px;
-            border-radius: 10px;
-            background: #fff;
-            border: 1px solid #ddd;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .search-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-        }
-
-        .search-item:hover {
-            background: #f3f3f3;
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 20px;
-        }
-
-        .radio-group label {
-            cursor: pointer;
-        }
-
-        .modal-content {
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 15px !important;
-        }
-
-        .form-group {
-            margin-bottom: 10px !important;
+            color: #1e293b;
         }
 
         .form-group input,
         .form-group select {
-            padding: 8px 10px !important;
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            transition: 0.2s;
+            background: #fff;
+        }
+
+        .form-group input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-top: 4px;
+        }
+
+        .search-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: 0.1s;
+        }
+
+        .search-item:hover {
+            background: #f8fafc;
+        }
+
+        .product-row-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 14px;
+            border: 1px solid #eef2ff;
+            transition: all 0.2s;
+        }
+
+        .product-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .product-flex .field {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .product-flex .field-sm {
+            flex: 0 0 110px;
+        }
+
+        .product-flex .field-xs {
+            flex: 0 0 80px;
+        }
+
+        .product-flex label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .product-search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            background: white;
+        }
+
+        .product-suggestions {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: absolute;
+            z-index: 200;
+            width: calc(100% - 24px);
+        }
+
+        .suggestion-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
             font-size: 14px;
         }
 
-        .modal-content h3 {
-            margin-bottom: 10px;
+        .suggestion-item:hover {
+            background: #f1f5f9;
         }
 
-        .btn-primary {
+        .qty-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            text-align: center;
+        }
+
+        /* Remove spinner arrows but keep typing functionality */
+        .qty-input::-webkit-inner-spin-button,
+        .qty-input::-webkit-outer-spin-button {
+            opacity: 0.5;
+        }
+
+        .remove-product-btn {
+            background: #fee2e2;
+            border: none;
+            border-radius: 40px;
+            width: 36px;
+            height: 36px;
+            font-weight: bold;
+            color: #b91c1c;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .remove-product-btn:hover {
+            background: #fecaca;
+        }
+
+        .add-btn {
+            background: #eef2ff;
+            border: 1px dashed #0d6efd;
+            color: #0d6efd;
             padding: 10px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            margin: 8px 0 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
         }
 
-        .modal {
+        .add-btn:hover {
+            background: #e0e7ff;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%);
+            border-radius: 24px;
+            padding: 18px 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .total-amount-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .radio-group label {
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            width: 100%;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #0b5ed7;
+            transform: translateY(-1px);
+        }
+
+        .toast-custom {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #1e293b;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            opacity: 0;
+            transition: 0.2s;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .field {
+            position: relative;
         }
     </style>
 </head>
 
 <body>
-
-<div class="app-layout">
-
-    <aside class="sidebar">
-        <div class="logo-area">
-            <h2>VRK AGENCY</h2>
-        </div>
-        <nav class="nav-menu">
-            <a onclick="goToPage('index.html')" class="nav-item">Dashboard</a>
-            <a onclick="goToPage('payments.html')" class="nav-item active">Payments</a>
-            <a onclick="goToPage('customers.html')" class="nav-item">Customers</a>
-        </nav>
-    </aside>
-
-    <main class="main-content">
-
-        <header class="top-bar">
-            <h1>Add Payment</h1>
-            <button class="btn-primary" onclick="goToPage('payments.html')">← Back</button>
-        </header>
-
-        <div class="form-wrapper">
-            <div class="form-card">
-
-                <div class="form-header">
-                    <h2>Add New Payment</h2>
-                </div>
-
-                <form id="paymentForm">
-
-                    <div class="row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label>Customer *</label>
-                                <input type="text" id="searchCustomer" placeholder="Search name or mobile">
-                                <div id="results" class="search-results"></div>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h2>VRK AGENCY</h2>
+            </div>
+            <nav class="nav-menu">
+                <a onclick="goToPage('index.html')" class="nav-item">Dashboard</a>
+                <a onclick="goToPage('payments.html')" class="nav-item active">Payments</a>
+                <a onclick="goToPage('customers.html')" class="nav-item">Customers</a>
+                <a onclick="goToPage('products.html')" class="nav-item">Products</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="top-bar">
+                <h1>Add Payment</h1>
+                <button class="btn-primary" onclick="goToPage('payments.html')"
+                    style="width: auto; padding: 8px 22px;">← Back</button>
+            </header>
+            <div class="form-wrapper">
+                <div class="form-card">
+                    <form id="paymentForm">
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <div class="form-group search-wrapper">
+                                    <label>Customer *</label>
+                                    <input type="text" id="searchCustomer" placeholder="Search by name or mobile..."
+                                        autocomplete="off">
+                                    <div id="customerResults" class="search-results"></div>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="col">
-                            <div class="form-group">
-                                <label>Date *</label>
-                                <input type="date" id="date" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label>Total Amount (₹) *</label>
-                                <input type="number" id="total" required>
-                            </div>
-                        </div>
-
-                        <div class="col">
-                            <div class="form-group">
-                                <label>Payment Type *</label>
-
-                                <div class="radio-group">
-                                    <label>
-                                        <input type="radio" name="type" value="paid" checked> Paid
-                                    </label>
-
-                                    <label>
-                                        <input type="radio" name="type" value="pending"> Pending
-                                    </label>
+                            <div class="col-md-5">
+                                <div class="form-group"><label>Date *</label><input type="date" id="date" required>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="form-group" id="receivedGroup" style="display:none;">
-                        <label>Received Amount (₹)</label>
-                        <input type="number" id="received">
-                    </div>
+                        <div style="margin: 20px 0 10px 0;"><strong>Products</strong> <span
+                                style="font-size:12px; color:#475569;">(search & add each product)</span></div>
+                        <div id="productsList"></div>
+                        <button type="button" id="addProductBtn" class="add-btn">+ Add another product</button>
 
-                    <button type="submit" class="btn-primary">Save Payment</button>
+                        <div class="summary-card">
+                            <span style="font-weight:600;">GRAND TOTAL</span>
+                            <span class="total-amount-text" id="grandTotalDisplay">₹0</span>
+                        </div>
 
-                </form>
-
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Payment Type</label>
+                                    <div class="radio-group">
+                                        <label><input type="radio" name="type" value="paid" checked> Full Paid</label>
+                                        <label><input type="radio" name="type" value="pending"> Partial /
+                                            Pending</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="receivedGroup" style="display:none;">
+                                <div class="form-group"><label>Received Amount (₹)</label><input type="number"
+                                        id="receivedAmount" step="any" placeholder="Enter amount"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save mt-3">✓ Save Payment</button>
+                    </form>
+                </div>
             </div>
-        </div>
+        </main>
+    </div>
+    <div id="toastMsg" class="toast-custom"></div>
+    <script>
+        function goToPage(p) { window.location.href = p; }
+        const db = window.firebaseDb;
+        const customersRef = db.ref('customers');
+        const productsRef = db.ref('products');
+        const paymentsRef = db.ref('payments');
 
-    </main>
-</div>
+        let customersList = [];
+        let allProductsList = [];
+        let selectedCustomer = null;
+        let productItems = [];
 
-<script>
+        // FIX 1: Date restriction - allow today's date
+        const dateInput = document.getElementById('date');
+        // Set max date to today (allows today and past dates)
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.max = `${yyyy}-${mm}-${dd}`;
+        // Set default date to today
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
 
-function goToPage(p){ window.location.href = p; }
-
-const db = window.firebaseDb;
-const customersRef = db.ref('customers');
-const paymentsRef = db.ref('payments');
-
-let customers = [];
-let selectedCustomer = null;
-
-/* 🔒 Restrict future date in picker */
-const dateInput = document.getElementById("date");
-dateInput.max = new Date().toISOString().split("T")[0];
-
-/* Load customers */
-customersRef.once('value', snap => {
-    customers = Object.entries(snap.val() || {}).map(([id, d]) => ({ id, ...d }));
-});
-
-/* Search */
-document.getElementById('searchCustomer').oninput = function () {
-    let val = this.value.toLowerCase();
-    let html = "";
-
-    customers
-        .filter(c => c.name.toLowerCase().includes(val) || c.mobile.includes(val))
-        .forEach(c => {
-            html += `
-            <div class="search-item" onclick="selectCustomer('${c.id}')">
-                <strong>${c.name}</strong><br>
-                <small>${c.mobile}</small>
-            </div>`;
+        async function loadData() {
+            const custSnap = await customersRef.once('value');
+            customersList = Object.entries(custSnap.val() || {}).map(([id, c]) => ({ id, ...c }));
+            const prodSnap = await productsRef.once('value');
+            allProductsList = Object.entries(prodSnap.val() || {}).map(([id, p]) => ({ id, name: p.name, price: Number(p.price) || 0, unit: p.unit || 'pc', quantity: p.quantity || 0 }));
+            renderAllProductRows();
+        }
+        loadData();
+        productsRef.on('value', snap => {
+            allProductsList = Object.entries(snap.val() || {}).map(([id, p]) => ({ id, name: p.name, price: Number(p.price) || 0, unit: p.unit || 'pc', quantity: p.quantity || 0 }));
+            renderAllProductRows();
         });
 
-    document.getElementById('results').innerHTML = html;
-};
+        const custSearch = document.getElementById('searchCustomer');
+        const custResultsDiv = document.getElementById('customerResults');
+        custSearch.oninput = function () {
+            let val = this.value.toLowerCase().trim();
+            if (!val) { custResultsDiv.innerHTML = ""; return; }
+            let html = "";
+            customersList.filter(c => c.name.toLowerCase().includes(val) || (c.mobile && c.mobile.includes(val)))
+                .forEach(c => { html += `<div class="search-item" onclick="selectCustomer('${c.id}')"><strong>${c.name}</strong> <span style="color:#64748b;">${c.mobile || ''}</span></div>`; });
+            custResultsDiv.innerHTML = html;
+        };
+        function selectCustomer(id) {
+            selectedCustomer = customersList.find(c => c.id === id);
+            custSearch.value = selectedCustomer.name;
+            custResultsDiv.innerHTML = "";
+        }
 
-/* Select */
-function selectCustomer(id){
-    selectedCustomer = customers.find(c => c.id === id);
-    document.getElementById('searchCustomer').value = selectedCustomer.name;
-    document.getElementById('results').innerHTML = "";
-}
+        function renderAllProductRows() {
+            const container = document.getElementById('productsList');
+            if (!container) return;
+            container.innerHTML = '';
+            if (productItems.length === 0) {
+                addEmptyProductRow();
+            } else {
+                productItems.forEach((item, idx) => {
+                    generateProductRowUI(idx, item);
+                });
+            }
+            updateGrandTotal();
+        }
 
-/* Radio toggle */
-document.querySelectorAll('input[name="type"]').forEach(radio => {
-    radio.addEventListener('change', function () {
-        document.getElementById('receivedGroup').style.display =
-            this.value === 'pending' ? 'block' : 'none';
-    });
-});
+        function addEmptyProductRow() {
+            productItems.push({ productId: '', name: '', price: 0, unit: '', quantity: 1, lineTotal: 0, searchQuery: '' });
+            renderAllProductRows();
+        }
 
-/* ✅ SINGLE SUBMIT HANDLER */
-document.getElementById('paymentForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+        function generateProductRowUI(index, item) {
+            const container = document.getElementById('productsList');
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'product-row-card';
+            rowDiv.setAttribute('data-idx', index);
 
-    const dateValue = dateInput.value;
-    const selectedDate = new Date(dateValue);
-    const today = new Date();
+            const searchValue = item.searchQuery || (item.name || '');
 
-    today.setHours(0,0,0,0);
-    selectedDate.setHours(0,0,0,0);
+            rowDiv.innerHTML = `
+                <div class="product-flex">
+                    <div class="field" style="flex:2.5; position:relative;">
+                        <label>Product</label>
+                        <input type="text" class="product-search-input" data-idx="${index}" placeholder="Search product by name..." value="${escapeHtml(searchValue)}" autocomplete="off">
+                        <div class="product-suggestions" data-idx="${index}" style="display:none;"></div>
+                    </div>
+                    <div class="field-sm">
+                        <label>Qty</label>
+                        <input type="number" class="qty-input" data-idx="${index}" value="${item.quantity}" min="1" step="1">
+                    </div>
+                    <div class="field-sm">
+                        <label>Price</label>
+                        <input type="text" class="form-control" value="₹${item.price}" readonly style="background:#f1f5f9; border:none; padding:10px;">
+                    </div>
+                    <div class="field-xs">
+                        <label>Total</label>
+                        <input type="text" class="form-control" value="₹${item.lineTotal}" readonly style="background:#eef2ff; font-weight:600;">
+                    </div>
+                    <div>
+                        <button type="button" class="remove-product-btn" data-idx="${index}">✕</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(rowDiv);
 
-    if(selectedDate > today){
-        alert("Future date not allowed");
-        return;
-    }
+            const searchInput = rowDiv.querySelector('.product-search-input');
+            const suggestionsDiv = rowDiv.querySelector('.product-suggestions');
+            const qtyInput = rowDiv.querySelector('.qty-input');
 
-    if (!selectedCustomer) {
-        alert("Select customer");
-        return;
-    }
+            // FIX 2: Quantity input - allow direct typing and handle all input methods
+            qtyInput.addEventListener('input', function (e) {
+                let newQty = parseInt(e.target.value);
+                // Allow empty or invalid to be treated as 1, but don't override while typing
+                if (isNaN(newQty) || newQty === null || e.target.value === '') {
+                    // Don't update - let user finish typing
+                    return;
+                }
+                if (newQty < 1) newQty = 1;
+                const idxAttr = parseInt(qtyInput.getAttribute('data-idx'));
+                if (productItems[idxAttr] && productItems[idxAttr].productId) {
+                    const prodPrice = productItems[idxAttr].price;
+                    productItems[idxAttr].quantity = newQty;
+                    productItems[idxAttr].lineTotal = prodPrice * newQty;
+                    updateGrandTotal();
+                    // Update the line total display without full rerender
+                    const lineTotalInput = rowDiv.querySelector('.field-xs input');
+                    if (lineTotalInput) {
+                        lineTotalInput.value = `₹${(prodPrice * newQty).toLocaleString('en-IN')}`;
+                    }
+                } else if (productItems[idxAttr]) {
+                    productItems[idxAttr].quantity = newQty;
+                    productItems[idxAttr].lineTotal = 0;
+                }
+            });
 
-    let total = Number(document.getElementById('total').value);
-    let type = document.querySelector('input[name="type"]:checked').value;
+            // Also handle change event to ensure final value is valid
+            qtyInput.addEventListener('change', function (e) {
+                let newQty = parseInt(e.target.value);
+                if (isNaN(newQty) || newQty < 1) {
+                    newQty = 1;
+                    qtyInput.value = 1;
+                }
+                const idxAttr = parseInt(qtyInput.getAttribute('data-idx'));
+                if (productItems[idxAttr] && productItems[idxAttr].productId) {
+                    const prodPrice = productItems[idxAttr].price;
+                    productItems[idxAttr].quantity = newQty;
+                    productItems[idxAttr].lineTotal = prodPrice * newQty;
+                    updateGrandTotal();
+                    const lineTotalInput = rowDiv.querySelector('.field-xs input');
+                    if (lineTotalInput) {
+                        lineTotalInput.value = `₹${(prodPrice * newQty).toLocaleString('en-IN')}`;
+                    }
+                }
+            });
 
-    let received = type === 'paid'
-        ? total
-        : Number(document.getElementById('received').value);
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const idxAttr = parseInt(searchInput.getAttribute('data-idx'));
+                if (query === "") {
+                    suggestionsDiv.style.display = 'none';
+                    suggestionsDiv.innerHTML = '';
+                    return;
+                }
+                const filtered = allProductsList.filter(p => p.name.toLowerCase().includes(query));
+                if (filtered.length === 0) {
+                    suggestionsDiv.style.display = 'none';
+                    return;
+                }
+                let suggHtml = '';
+                filtered.forEach(prod => {
+                    suggHtml += `<div class="suggestion-item" data-prodid="${prod.id}" data-name="${prod.name}" data-price="${prod.price}" data-unit="${prod.unit}">${prod.name}  <span style="color:#2563eb;">₹${prod.price}/${prod.unit}</span></div>`;
+                });
+                suggestionsDiv.innerHTML = suggHtml;
+                suggestionsDiv.style.display = 'block';
 
-    let data = {
-        customerId: selectedCustomer.id,
-        totalAmount: total,
-        receivedAmount: received,
-        pendingAmount: total - received,
-        date: selectedDate.getTime()
-    };
+                suggestionsDiv.querySelectorAll('.suggestion-item').forEach(el => {
+                    el.addEventListener('click', (event) => {
+                        const prodId = el.getAttribute('data-prodid');
+                        const prodName = el.getAttribute('data-name');
+                        const prodPrice = parseFloat(el.getAttribute('data-price'));
+                        const prodUnit = el.getAttribute('data-unit');
+                        const currentQty = productItems[idxAttr]?.quantity || 1;
+                        productItems[idxAttr] = {
+                            productId: prodId,
+                            name: prodName,
+                            price: prodPrice,
+                            unit: prodUnit,
+                            quantity: currentQty,
+                            lineTotal: prodPrice * currentQty,
+                            searchQuery: prodName
+                        };
+                        renderAllProductRows();
+                        event.stopPropagation();
+                    });
+                });
+            });
 
-    paymentsRef.push(data).then(() => {
-        alert("Payment Saved");
-        window.location.href = "payments.html";
-    });
+            searchInput.addEventListener('blur', () => {
+                setTimeout(() => { suggestionsDiv.style.display = 'none'; }, 200);
+            });
+        }
 
-});
+        document.getElementById('productsList')?.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-product-btn')) {
+                const idx = parseInt(e.target.getAttribute('data-idx'));
+                if (productItems.length > 1) {
+                    productItems.splice(idx, 1);
+                    renderAllProductRows();
+                } else {
+                    productItems[0] = { productId: '', name: '', price: 0, unit: '', quantity: 1, lineTotal: 0, searchQuery: '' };
+                    renderAllProductRows();
+                }
+                updateGrandTotal();
+            }
+        });
 
-</script>
+        document.getElementById('addProductBtn')?.addEventListener('click', () => {
+            productItems.push({ productId: '', name: '', price: 0, unit: '', quantity: 1, lineTotal: 0, searchQuery: '' });
+            renderAllProductRows();
+        });
 
+        function updateGrandTotal() {
+            let total = 0;
+            productItems.forEach(item => { if (item.lineTotal) total += item.lineTotal; });
+            document.getElementById('grandTotalDisplay').innerHTML = `₹${total.toLocaleString('en-IN')}`;
+            window.currentTotal = total;
+        }
+
+        const radioPaid = document.querySelector('input[value="paid"]');
+        const radioPending = document.querySelector('input[value="pending"]');
+        const receivedGroup = document.getElementById('receivedGroup');
+        if (radioPaid) radioPaid.addEventListener('change', () => { receivedGroup.style.display = 'none'; });
+        if (radioPending) radioPending.addEventListener('change', () => { receivedGroup.style.display = 'block'; });
+
+        function showToastMsg(msg, isError = false) {
+            const toast = document.getElementById('toastMsg');
+            toast.innerText = msg;
+            toast.style.background = isError ? '#dc2626' : '#10b981';
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+        }
+
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedCustomer) { showToastMsg("Please select a customer", true); return; }
+            const dateVal = dateInput.value;
+            if (!dateVal) { showToastMsg("Select date", true); return; }
+            const selectedDateObj = new Date(dateVal);
+            const todayClear = new Date();
+            todayClear.setHours(0, 0, 0, 0);
+            // FIX 1: Allow today's date (<= instead of <)
+            if (selectedDateObj > todayClear) { showToastMsg("Future date not allowed", true); return; }
+
+            const validProducts = productItems.filter(p => p.productId && p.quantity > 0);
+            if (validProducts.length === 0) { showToastMsg("Add at least one product", true); return; }
+
+            let totalAmount = 0;
+            validProducts.forEach(p => { totalAmount += (p.price * p.quantity); });
+            if (totalAmount <= 0) { showToastMsg("Invalid total amount", true); return; }
+
+            const paymentType = document.querySelector('input[name="type"]:checked').value;
+            let receivedAmt = 0;
+            if (paymentType === 'paid') {
+                receivedAmt = totalAmount;
+            } else {
+                receivedAmt = parseFloat(document.getElementById('receivedAmount').value);
+                if (isNaN(receivedAmt)) receivedAmt = 0;
+                if (receivedAmt > totalAmount) { showToastMsg("Received amount cannot exceed total", true); return; }
+                if (receivedAmt < 0) receivedAmt = 0;
+            }
+            const pendingAmt = totalAmount - receivedAmt;
+
+            const productsSnapshot = validProducts.map(p => ({
+                productId: p.productId,
+                productName: p.name,
+                price: p.price,
+                unit: p.unit,
+                quantity: p.quantity,
+                lineTotal: p.price * p.quantity
+            }));
+
+            const paymentObj = {
+                customerId: selectedCustomer.id,
+                customerName: selectedCustomer.name,
+                customerMobile: selectedCustomer.mobile || '',
+                totalAmount: totalAmount,
+                receivedAmount: receivedAmt,
+                pendingAmount: pendingAmt,
+                date: selectedDateObj.getTime(),
+                dateString: dateVal,
+                paymentType: paymentType,
+                products: productsSnapshot,
+                timestamp: Date.now()
+            };
+
+            try {
+                await paymentsRef.push(paymentObj);
+                showToastMsg("Payment saved successfully! ✅");
+                setTimeout(() => { window.location.href = "payments.html"; }, 1300);
+            } catch (err) { showToastMsg("Error: " + err.message, true); }
+        });
+
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function (m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+
+        if (productItems.length === 0) { productItems.push({ productId: '', name: '', price: 0, unit: '', quantity: 1, lineTotal: 0, searchQuery: '' }); }
+        setTimeout(() => { renderAllProductRows(); }, 100);
+    </script>
 </body>
+
 </html>
